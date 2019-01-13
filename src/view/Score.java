@@ -1,0 +1,434 @@
+/*
+ * TCSS 305
+ * 
+ * Assignment 6 - Tetris
+ */
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
+import javax.swing.border.TitledBorder;
+import model.TetrisPiece;
+
+/**
+ * This class is to update score and label.
+ * @author Arjun Prajapati
+ * @version December 1, 2017
+ */
+public class Score extends JPanel implements Observer {
+    
+    /**constant number to divide to the number of line cleared.*/
+    private static final int DIVIDER = 5;
+    
+    /**Constant number to add for the level.*/
+    private static final int LINE_ONE = 1;
+    
+    /**two line cleared.*/
+    private static final int LINE_TWO = 2;
+    
+    /**Three line cleared.*/
+    private static final int LINE_THREE = 3;
+    
+    /**Timer to delay when level up.*/
+    private static final int TIMER_DELAY = 50;
+
+    /**Freezing constant.*/
+    private static final int FREEZING_CONSTANT = 4;
+  
+    /**Constant number to add for one line clear.*/
+    private static final int LINE_ONE_SCORE = 40;
+    
+    /**Constant number to add for two line clear.*/
+    private static final int LINE_TWO_SCORE = 100;
+    
+    /**Constant number to add for three line clear.*/
+    private static final int LINE_THREE_SCORE = 300;
+    
+    /**Constant number to add for four line clear.*/
+    private static final int LINE_FOUR_SCORE = 300;
+    
+    /**Constant number to deduct at starting of game.*/
+    private static final int INITIAL_SCORE = -4;
+    
+//    MusicPlayer myMusicPlayer;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**Size of the Panel.*/
+    private static final Dimension SIZE = new Dimension(200, 200);
+    
+    /**Boolean if the game is continued.*/
+    private boolean myGameContinue;
+    
+    /**TetrisGUI class.*/
+    private TetrisGUI myTetrisGUI;
+    
+    /**Initial Score.*/
+    private int myCurrentScore; 
+//    = INITIAL_SCORE;
+    
+    /**Number of line cleared.*/
+    private int myLineCleared;
+    
+    /**Current Level..*/
+    private int myCurrentLevel;
+    
+    /**Next level value.*/
+    private int myNextLevelValue;
+    
+    /**High score value.*/
+    private int myHighScore;
+    
+    /**Temporary level value.*/
+    private int myTempLevel = 1;
+    
+    /**Label for score.*/
+    private JLabel myCurrentScoreLabel = new JLabel();
+    
+    /** Label for number of line cleared. */
+    private JLabel myLineClear = new JLabel();
+    
+    /**Current Level.*/
+    private JLabel myLevel = new JLabel();
+    
+    /**Next Level to reach.*/
+    private JLabel myNextLevel = new JLabel();
+    
+    
+    /**Current High Score Label.*/
+    private JLabel myHighScoreLabel = new JLabel("");
+    
+    /**Button for Pop in/out.*/
+    private JButton myPopup =  new JButton("Pop Out");
+    
+    /**Title for the panel.*/
+    private TitledBorder myBorder;
+    
+    /**Border Title.*/
+    private String myBorderTitle = "SCORE UPDATE";
+    
+//    private GameBoardPanel gameBoard = new GameBoardPanel(myTetrisGUI);;
+    
+    /**
+     * This is a panel to update the score of a game.
+     * @param theTetrisGUI , tetrisGUI object
+     */
+    public Score(final TetrisGUI theTetrisGUI) {
+        super();
+        // TODO Auto-generated constructor stub
+        myTetrisGUI = theTetrisGUI;
+        myBorder = new TitledBorder(myBorderTitle);
+        myBorder.setTitleJustification(TitledBorder.CENTER);
+        myBorder.setTitlePosition(TitledBorder.TOP);
+        setBorder(myBorder);
+        
+        final JPanel panel1 = new JPanel();
+        myPopup.setFocusable(false);
+        
+        myPopup.addActionListener(new ShowPopupActionListener(panel1));
+        addComponent();
+    }
+    
+    /**
+     * Add component for panel.
+     */
+    public void addComponent() {
+        setBackground(Color.LIGHT_GRAY);
+        setPreferredSize(SIZE);
+        final Box sideContainerBox = new Box(BoxLayout.PAGE_AXIS);
+        add(sideContainerBox, BorderLayout.EAST);
+//        sideContainerBox.add(myScore);
+        gameScore();
+        sideContainerBox.add(myCurrentScoreLabel);
+        sideContainerBox.add(myLineClear);
+        sideContainerBox.add(myLevel);
+        sideContainerBox.add(myNextLevel);
+        sideContainerBox.add(myHighScoreLabel);
+        sideContainerBox.add(myPopup);
+        myGameContinue = false;
+        
+    }
+    /***/
+    public void hideComponent() {
+        myPopup.setVisible(false);
+    }
+    
+    
+
+    /***/
+    public void displayComponent() {
+        myCurrentScoreLabel.setVisible(true);
+        addComponent();
+        myPopup.setVisible(true);
+    }
+    
+    /**
+     * method to update the score.
+     * @param theUpdate , integer value get from board.
+     */
+    public void scoreUpdate(final int theUpdate) {
+        myTetrisGUI.lineClear();
+        myLineCleared += theUpdate;
+        myCurrentScore += (getInstantScore(theUpdate) * myCurrentLevel) + INITIAL_SCORE;
+        myTetrisGUI.setScore(myCurrentScore);
+        gameScore();
+    }
+    
+
+    
+    /**
+     * This method returns instant score after the clear of line.
+     * @return Integer
+     * @param theNumber , the number of line cleared
+     */
+    public int getInstantScore(final int theNumber) {
+        final int returnValue;
+        if (theNumber == LINE_ONE) {
+            returnValue =  LINE_ONE_SCORE;
+        } else if (theNumber == LINE_TWO) {
+            returnValue = LINE_TWO_SCORE;
+        } else if (theNumber == LINE_THREE) {
+            returnValue =  LINE_THREE_SCORE;
+        } else {
+            returnValue = LINE_FOUR_SCORE;
+        }
+        return returnValue;
+    }
+    /**
+     * return the current score.
+     * @return int
+     */
+    public int getCurrentScore() {
+//        System.out.println("aaaaaaaaAA" + myCurrentScore);
+        return Integer.parseInt(myCurrentScoreLabel.getText());
+        
+//        return myScoringfinal;
+    }
+    
+    /**
+     * update the score.
+     * @param theScore , score of the game
+     */
+    public void setCurrentScore(final int theScore) {
+        myCurrentScore = theScore;
+    }
+    /**
+     * method to update the gamescore, and level.
+     */
+    public void gameScore() {
+//        final String score = Integer.toString(myCurrentScore);
+//        myCurrentScore = (int)Integer.toString(myCurrentScore);
+//        GameBoardPanel.sets
+//        System.out.println(Integer.toString(myTetrisGUI.getScore()));
+        if (myHighScore <= myCurrentScore) {
+            myHighScore = myCurrentScore;
+        }
+        getCurrentScoreLabel();
+        getLineClear();
+        getCurrentLevel();
+        getNextLevel();
+        getHighScore();
+//        repaint();
+    }
+    /**
+     * method to return the High score of next level.
+     * @return JLabel
+     */
+    public JLabel getHighScore() {
+        myHighScoreLabel.setText("High Score : " + myHighScore);
+        return myHighScoreLabel;
+    }
+    /**
+    * method to return the current score of next level.
+    * @return JLabel
+    */
+    public JLabel getCurrentScoreLabel() {
+        myCurrentScoreLabel.setText("Score : " + Integer.toString(myCurrentScore));
+        return myCurrentScoreLabel;
+    }
+    
+    /**
+     * method to return the level of next level.
+     * @return JLabel
+     */
+    public JLabel getNextLevel() {
+        myNextLevel.setText("Next Level : " + Integer.toString(getNextLevelValue()));
+        return myNextLevel;
+    }
+    
+    /**
+     * method to return the integer value for remaining for next level.
+     * @return Integer
+     */
+    public int getNextLevelValue() {
+        myNextLevelValue = DIVIDER - (myLineCleared % DIVIDER);
+        return myNextLevelValue;
+    }
+    /**
+     * method to return the level.
+     * @return JLabel
+     */
+    public JLabel getCurrentLevel() {
+        myLevel.setText("Current Level : " + Integer.toString(getLevel()));
+        return myLevel;
+    }
+    
+    
+//     public void setCurrentScore(int theNum) {
+//         myCurrentScore = theNum;
+//     }
+    /**
+     * method to return the level.
+     * @return integer , level of game
+     */
+    public int getLevel() {
+        
+        //myLineCleared is a total line cleared
+        // Divider mean the constant 5,
+        //Line_One is constant one to add while moving to next level
+        myCurrentLevel = (myLineCleared / DIVIDER) + LINE_ONE;
+        if (myCurrentLevel != myTempLevel) {
+            myTetrisGUI.getMyTime().setDelay(myTetrisGUI.getMyTime().getDelay() - TIMER_DELAY);
+            myTetrisGUI.levelUp();
+            System.out.println("Time change : " + myTetrisGUI.getMyTime().getDelay());
+        }
+        myTempLevel = myCurrentLevel;
+        return myCurrentLevel;
+    }
+   
+    /**
+     * return the JLabel with new updated score.
+     * @return JLabel
+     */
+    public JLabel getLineClear() {
+        myLineClear.setText("Total Line Cleared : " + Integer.toString(myLineCleared));
+
+        return myLineClear;
+    }
+    
+    /**
+     * this method reset the score and levels.
+     */
+    public void clear() {
+        myGameContinue = true;
+        myLineCleared = 0;
+        myCurrentScore = 0;
+        myCurrentLevel = 0;
+        myNextLevelValue = 0;
+        gameScore();
+    }
+
+    
+    /**
+     * Freezing number.
+     */
+    public void addFreezingNumber() {
+        myCurrentScore += FREEZING_CONSTANT;
+    }
+    @Override
+    public void update(final Observable theObject, final Object theArg) {
+        if (theArg instanceof TetrisPiece) {
+            if (!myGameContinue) {
+                gameScore();
+                addFreezingNumber();
+            
+            } else {
+                addFreezingNumber(); 
+                gameScore();
+                System.out.println("second");
+            }
+
+        }
+        if (theArg instanceof Integer[]) {
+            scoreUpdate(((Integer[]) theArg).length);
+            myTetrisGUI.setScore(myCurrentScore);
+            repaint();
+        }
+        
+    }
+    /**
+     * this class is to popup the score panel.
+     * @author Arjun Prajapati
+     * @version December 6, 2017
+     *
+     */
+    public class ShowPopupActionListener implements ActionListener {
+        /**X- cordinate value to display popup..*/
+        private static final int X_CORDINATE = 850;
+        
+        /**Y- cordinate value to display popup..*/
+        private static final int Y_CORDINATE = 300;
+        
+        /**Component to display.*/
+        private Component myComponent;
+        /**
+         * Actionlistener for popup.
+         * @param theComponent , panel
+         */
+        ShowPopupActionListener(final Component theComponent) {
+            this.myComponent = theComponent;
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent theEvent) {
+            hideComponent();
+            final JButton hideButton = new JButton("Pop In");
+            final JPanel display = new JPanel();
+            
+            final TitledBorder border = new TitledBorder(myBorderTitle);
+            border.setTitleJustification(TitledBorder.CENTER);
+            border.setTitlePosition(TitledBorder.TOP);
+            display.setBorder(border);
+            
+            display.setBackground(Color.LIGHT_GRAY);
+            display.setPreferredSize(SIZE);
+            
+            final Box sideContainerBox = new Box(BoxLayout.PAGE_AXIS);
+            display.add(sideContainerBox, BorderLayout.EAST);
+            gameScore();
+            sideContainerBox.add(myCurrentScoreLabel);
+            sideContainerBox.add(myLineClear);
+            sideContainerBox.add(myLevel);
+            sideContainerBox.add(myNextLevel);
+            sideContainerBox.add(myHighScoreLabel);
+            sideContainerBox.add(hideButton);
+
+            final PopupFactory factory = PopupFactory.getSharedInstance();
+            final Popup popup = factory.getPopup(myComponent, display
+                                                 , X_CORDINATE, Y_CORDINATE);
+            popup.show();
+            
+
+            hideButton.addActionListener(new ActionListener() {
+                
+                @Override
+                public void actionPerformed(final ActionEvent theEvent) {
+                    // TODO Auto-generated method stub
+                    displayComponent();
+                    popup.hide(); 
+                    
+                }
+                  
+            });
+        }
+          
+            
+    }
+
+}
+

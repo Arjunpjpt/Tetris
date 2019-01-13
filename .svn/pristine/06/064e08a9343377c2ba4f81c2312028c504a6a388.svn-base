@@ -1,0 +1,605 @@
+/*
+ * TCSS 305
+ * 
+ * Assignment 6 - Tetris
+ */
+package view;
+
+import java.awt.BorderLayout;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.Observable;
+import java.util.Observer;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
+import model.Board;
+
+/**
+ * This is a class to setup GUI of Tetris.
+ * @author Arjun Prajapati
+ * @version December 1, 2017
+ */
+public class TetrisGUI implements Observer {
+    /**Window frame.*/
+    private JFrame myFrame;
+    
+//    private TetrisGUI myTetrisGUI = new TetrisGUI() ;
+    /**Game Board.*/
+    private GameBoardPanel myGameBoardPanel;
+    
+    /**Next Piece Panel.*/
+    private NextPiecePanel myNextPiecePanel;
+    
+    /**Score Panel.*/
+    private Score myScore;
+    
+    /////
+    /**left key command to move tetris.*/
+    private String myLeft = "a";
+    /**right key command to move tetris.*/
+    private String myRight = "d";
+    /**up key command to rotate tetris.*/
+    private String myRotate = "w";
+    /**down key command to move tetris.*/
+    private String myDown = "s";
+    /**drop key command to move tetris.*/
+    private String myDrop = "";
+    
+    /**Text field width.*/
+    private final int myTextFieldWidth = 5;
+    
+//  /**Declare panel for editing the keys JOption .*/
+    /**Panel for editing key.*/
+    private JPanel myPanel;
+
+    
+    /** for Jmenu item of file.*/
+    private final JMenuItem myPauseGame;
+    
+    /**Declaring to ControlButtons class.*/
+    private ControlButtons myControlButtons;
+    
+    /**Declaring GameStatus class.*/
+    private GameStatus myGameStatus;
+    
+    /**Reference to the Board class.*/
+    private Board myBoard;
+    
+    /**To know the timeState.*/
+    private Boolean myTimeState;
+    
+    /**RDeclaring timer.*/
+    private Timer myTime;
+
+    /**Game Processing status.*/
+    private boolean myGameProgress;
+    /**Declaring reference for the PausePlayGame class.*/
+    private PausePlayGame myPausePlayButton;
+    
+     /**Timer time for 1 second.*/
+    private final int myTimerTime = 1000;
+    
+    /**Final score to display.*/
+    private int myFinalScore;
+    /**
+     * This is a default constructor.
+     */
+    public TetrisGUI() {
+        myPauseGame = new JMenuItem("");
+        createAndShowGUI();
+    }
+     
+    /**
+     * this method update the score.
+     * @param theScore ,  current score
+     */
+    public void setScore(final int theScore) {
+//        System.out.println("from Tetris   GUI" + theScore);
+        myFinalScore = theScore;
+    }
+    
+    /**
+     * This method returns the current score.
+     * @return int
+     */
+    public int getScore() {
+        return myFinalScore;
+    }
+    
+    /**
+     * Get time Start value.
+     * @return boolean , timeState
+     */
+    public boolean getTimeStart() {
+        return myTimeState;
+    }
+    
+    /**
+     * Set time Start value.
+     * @param theState , true or false
+     */
+    public void  setTimeStart(final boolean theState) {
+        myTimeState = theState;
+    }
+    
+    
+    
+    /**
+     * This method to setup a frame.
+     */
+    public void createAndShowGUI() {
+//        myKeyControla = new KeyControl(myBoard);
+        myFrame = new JFrame("Tetris");
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        myFrame.setFocusable(true);
+        myFrame.addKeyListener(new KeyControlListener());
+        
+//        myKeyControl.setLeftKey("a");
+        
+        
+        final JMenuBar menuBar = new JMenuBar();
+        menuBar.add(buildFileMenu());
+        menuBar.add(buildControlKeyMenu());
+        
+        myFrame.setJMenuBar(menuBar);
+        
+        myGameBoardPanel = new GameBoardPanel(this);
+        myFrame.add(myGameBoardPanel, BorderLayout.CENTER);
+            
+        myNextPiecePanel = new NextPiecePanel();
+        myGameStatus = new GameStatus(this);
+        myScore = new Score(this);
+//        myFrame.add(myNextPiecePanel, BorderLayout.EAST);
+
+        
+        myBoard = new Board();
+        
+        final Box sideContainerBox = new Box(BoxLayout.PAGE_AXIS);
+        myFrame.add(sideContainerBox, BorderLayout.EAST);
+//        sideContainerBox
+        myControlButtons = new ControlButtons(this);
+        sideContainerBox.add(myNextPiecePanel);
+        sideContainerBox.add(myControlButtons);
+        sideContainerBox.add(myScore);
+        sideContainerBox.add(myGameStatus);
+        
+
+        myBoard.addObserver(myGameBoardPanel);
+        myBoard.addObserver(myNextPiecePanel);
+        myBoard.addObserver(myScore);
+        myBoard.addObserver(myControlButtons);
+        myBoard.addObserver(myGameStatus);
+        
+        
+        myBoard.newGame();
+        
+        myFrame.setResizable(true);
+        myFrame.pack();
+        myFrame.setVisible(true);
+
+        
+        myTime = new Timer(myTimerTime, new TimeAction());
+        
+        myTime.start();
+        myTimeState = true;
+//        new EditKeyButton(myTime,pauseGame );
+        myGameProgress = true;
+        gameStatus();
+    }
+    
+    /**
+     * This method returns timer.
+     * @return Timer
+     */
+    public Timer getMyTime() {
+        return myTime;
+    }
+    /**
+     * get the left move key.
+     * @return String, the left keyword
+     */
+    public String getLeftKey() {
+        return myLeft;
+    }
+    
+    /**
+     * get the right move key.
+     * @return String, the right keyword
+     */
+    public String getRightKey() {
+        return myRight;
+    }
+    
+    /**
+     * get the rotate move key.
+     * @return String, the rotate keyword
+     */
+    public String getRotateKey() {
+        return myRotate;
+    }
+    
+    /**
+     * get the left move key.
+     * @return String, the down keyword
+     */
+    public String getDownKey() {
+        return myDown;
+    }
+    
+    /**
+     * get the drop move key.
+     * @return String, the drop keyword.
+     */
+    public String getDropKey() {
+        return myDrop;
+    }
+    
+    /**
+     * this method is to return if game is paused.
+     */
+    public void gameStatus() {
+        if (myGameProgress) {
+            myGameStatus.myMessageLabel().setText("Game On Process");
+            
+        } else {
+            myGameStatus.myMessageLabel().setText("Game Paused");
+        }
+    }
+    /**
+     * This method is to print game over.
+     */
+    public void gameOver() {
+        myGameStatus.myMessageLabel().setText("Game Over");
+    }
+    /**
+     * Create Control Key Menu.
+     * @return JMenu
+     */
+    private JMenu buildControlKeyMenu() {
+//        EditKeyButton editKeyBtn = new EditKeyButton();
+        final JMenu controlMenu = new JMenu("Edit Key");
+        controlMenu.setMnemonic(KeyEvent.VK_E);
+        
+        final JMenuItem editControlKey = new JMenuItem("Edit Control Key");
+        editControlKey.setMnemonic(KeyEvent.VK_C);
+        editControlKey.addActionListener(new ActionListener() {
+//            private ControlButtons myBtnControlAction = new ControlButtons(this);
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+//                myTime.stop();
+                myGameProgress = false;
+                gameStatus();
+                myPausePlayButton.gameAction();
+                /////////
+                ////
+                /////
+                modifyControlKeys();
+                
+            }
+            
+        });
+        controlMenu.add(editControlKey);
+        return controlMenu;
+    }
+    
+    /**
+     * Method to modify the buttons.
+     */
+    public void modifyControlKeys() {
+//        setLableInvisible();
+//        final String leftKeys = myKeyControlKey.getLeftKey();
+//        System.out.println(leftKeys);
+        SwingUtilities.invokeLater(() -> {
+            final JTextField leftKey = new JTextField(myTextFieldWidth);
+            leftKey.setDocument(new JTextFieldLimit(1));
+            leftKey.setText(getLeftKey());
+            
+            final JTextField rightKey = new JTextField(myTextFieldWidth);
+            rightKey.setDocument(new JTextFieldLimit(1));
+            rightKey.setText(getRightKey());
+            
+            final JTextField upKey = new JTextField(myTextFieldWidth);
+            upKey.setDocument(new JTextFieldLimit(1));
+            upKey.setText(getRotateKey());
+
+            final JTextField downKey = new JTextField(myTextFieldWidth);
+            downKey.setDocument(new JTextFieldLimit(1));
+            downKey.setText(getDownKey());
+
+            final JButton btnOk = new JButton("Update");
+            leftKey.addActionListener(e -> {
+                final KeyboardFocusManager manager 
+                    = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+                manager.focusNextComponent();
+                
+                
+            });
+
+            myPanel = new JPanel();
+            myPanel.add(new JLabel("Left Key:"));
+            myPanel.add(leftKey);
+            myPanel.add(new JLabel("Right Key:"));
+            myPanel.add(rightKey);
+
+            myPanel.add(new JLabel("Rotate Key:"));
+            myPanel.add(upKey);
+
+            myPanel.add(new JLabel("Down Key:"));
+            myPanel.add(downKey);
+            myPanel.add(btnOk);
+
+            btnOk.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(final ActionEvent theEvent) {
+//                    myTime.start();
+                    myLeft = leftKey.getText();
+                    myRight = rightKey.getText();
+                    myRotate = upKey.getText();
+                    myDown = downKey.getText();
+                    myControlButtons.leftLabel().setText("Left Move : Left Key or " + myLeft);
+                    myControlButtons.rightLabel().setText("Right Move : Right Key or " 
+                                    + myRight);
+                    myControlButtons.rotateLabel().setText("Rotate Move : Up Key or " 
+                                    + myRotate);
+                    myControlButtons.downKeyLabel().setText("Down Move : Down Key or " 
+                                    + myDown);
+            
+                }
+            });
+
+
+            final String prompt = "Please Give Unique Key";
+            final Object[] options = {"Close"};
+            JOptionPane.showOptionDialog(null, myPanel, prompt,
+                    JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null,
+                    options,
+                    options[0]);
+        });
+        
+    }
+    /**
+     * Create file Menu.
+     * @return JMenu
+     */
+    private JMenu buildFileMenu() {
+        final JMenu fileMenu = new JMenu("File");
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+        
+        final JMenuItem newGame = new JMenuItem("New Game");
+        newGame.setMnemonic(KeyEvent.VK_N);
+        newGame.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(final ActionEvent theEvent) {
+                myBoard.newGame();
+                myGameProgress = true;
+                gameStatus();
+                myTime.start();
+                myFinalScore = 0;
+                myScore.getCurrentScoreLabel().setText("0");
+                myScore.setCurrentScore(0);
+                myPauseGame.setText(pauseString());
+                setTimeStart(true);
+            }
+            
+        });
+        
+        myPauseGame.setText(pauseString());
+        myPauseGame.setMnemonic(KeyEvent.VK_P);
+        myPausePlayButton = new PausePlayGame();
+        myPauseGame.addActionListener(myPausePlayButton);
+//        
+        
+        fileMenu.add(newGame);
+        fileMenu.add(myPauseGame);
+
+        return fileMenu;
+    }
+    /**
+     * this method return pause to change the label.
+     * @return String
+     */
+    public String pauseString() {
+        return "Pause";
+    }
+    
+    @Override
+    public void update(final Observable theObject, final Object theArg) {
+//        System.out.println("notified");
+
+    }
+    /**
+     * Key Lister class to move the Tetris object.
+     * @author arjun
+     *
+     */
+    public class KeyControlListener implements KeyListener {
+//        System.out.println("jjjjjjjjjjjjjj");
+        
+        @Override
+        public void keyTyped(final KeyEvent theEvent) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        public void keyPressed(final KeyEvent theEvent) {
+            //storing Key Code value.
+            final int keyCodeLeft = 37;
+            final int keyCodeRight = 39;
+            final int keyCodeUp = 38;
+            
+            
+            final char keys = theEvent.getKeyChar();
+            final String st = Character.toString(keys);
+            if ((theEvent.getKeyCode() == keyCodeRight) || (st.equals(getRightKey()))) {
+                myBoard.right();
+            } else if ((theEvent.getKeyCode() == keyCodeUp) || (st.equals(getRotateKey()))) {
+                myBoard.rotateCW();
+            } else if ((theEvent.getKeyCode() == keyCodeLeft) || (st.equals(getLeftKey()))) {
+                myBoard.left();
+//                System.out.println(myLeft);
+            } else {
+                keyAction(theEvent, st);
+
+            }
+            
+        }
+        /**
+         * method to choose keyAction.
+         * @param theEvent , event of key
+         * @param theString , keycode to string converted
+         */
+        public void keyAction(final KeyEvent theEvent, final String theString) {
+            final int keyCodeDown = 40;
+            final int keyCodeSpaceBar = 32;
+            if ((theEvent.getKeyCode() == keyCodeDown) || (theString.equals(getDownKey()))) {
+                myBoard.down();
+            } else if (theEvent.getKeyCode() == keyCodeSpaceBar) {
+                myBoard.drop();
+            } else if ("p".equals(theString) || "P".equals(theString)) {
+                myPausePlayButton.gameAction();
+            }
+        }
+        
+        @Override
+        public void keyReleased(final KeyEvent theEvent) {
+            // TODO Auto-generated method stub
+//            final char keys = e.getKeyChar();
+//            String st = Character.toString(keys);
+//            System.out.println(st.toLowerCase());
+        }
+        
+    }
+    /**
+     * Pause/Play game.
+     */
+    public class PausePlayGame implements ActionListener {
+        
+//        TetrisGUI myTimeGui;
+        @Override
+        public void actionPerformed(final ActionEvent theEvent) {
+            gameAction();
+        }
+        /**
+         * this method is to play/pause game.
+         */
+        public void gameAction() {
+            if (getTimeStart()) {
+                myGameProgress = false;
+                gameStatus();
+                myPauseGame.setText("Play");
+                myTime.stop();
+                setTimeStart(false);
+            } else { 
+                myTime.start(); 
+                myGameProgress = true;
+                gameStatus();
+                myPauseGame.setText(pauseString());
+                setTimeStart(true);
+            }
+            
+        }
+        
+    }
+    
+    
+    ////
+////  TetrisGUI myTimeGui = new TetrisGUI();
+//  @Override
+//  public void actionPerformed(ActionEvent e) {
+//      if( myTimeStart == true) {
+//          myTime.stop();
+//      } 
+//      else {
+//          myTime.start(); 
+//      }
+//}
+//});
+    /////
+    
+   
+    /**
+     * 
+     * @author arjun
+     *
+     */
+    
+    
+    class TimeAction implements ActionListener {
+        
+        /**
+         * actionlister for the time.
+         * @param theEvent , event of a time
+         */
+        public void actionPerformed(final ActionEvent theEvent) {
+            myBoard.step();
+        }
+        
+    }
+
+
+    /**
+     * this class is to limit the maximum input for jtextfield.
+     * @author Arjun
+     * 
+     */
+    public final class JTextFieldLimit extends PlainDocument {
+        /**
+         * 
+         */
+        private static final long serialVersionUID = 1L;
+        /**Maximum character for JField.*/
+        private int myLimit;
+        
+        /**
+         * Consttructor of JTextFieldLimit.
+         * @param theLimit , integer value.
+         */
+        private JTextFieldLimit(final int theLimit) {
+          super();
+            this.myLimit = theLimit;
+        }
+
+//        JTextFieldLimit(int theLimit, boolean theUpper) {
+//          super();
+//          this.myLimit = limit;
+//        }
+        /**
+         * method to update JField property.
+         * @param theOffset
+         * @param theStr
+         * @param theAttr
+         */
+        @Override
+        public void insertString(final int theOffset, 
+                                 final String theStr, final AttributeSet theAttr) 
+                        throws BadLocationException {
+            if (theStr == null) {
+                return;
+            }
+
+            if ((getLength() + theStr.length()) <= myLimit) {
+                super.insertString(theOffset, theStr, theAttr);
+            }
+        }
+    }
+}

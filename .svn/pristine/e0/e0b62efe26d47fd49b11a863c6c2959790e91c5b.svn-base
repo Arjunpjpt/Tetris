@@ -1,0 +1,139 @@
+/*
+ * TCSS 305
+ * 
+ * Assignment 6 - Tetris
+ */
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.util.Observable;
+import java.util.Observer;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
+/**
+ * This is a class to display Control buttons.
+ * @author Arjun Prajapati
+ * @version December 1, 2017
+ */
+public class ControlButtons extends JPanel implements Observer {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    /**Size of the Panel.*/
+    private static final Dimension SIZE = new Dimension(200, 250);
+
+    /**Left key label.*/
+    private JLabel myLeftKeyLabel;
+    
+    /**Right key label.*/
+    private JLabel myRightKeyLabel;
+    
+    /**Rotate key label.*/
+    private JLabel myRotateKeyLabel;
+    
+    /**Down key label.*/
+    private JLabel myDownKeyLabel;
+    
+    /**Drop key label.*/
+    private JLabel myDropKeyLabel;
+    
+    /**Pause key label.*/
+    private JLabel myPauseKeyLabel;
+    
+
+///**Declare and initialize theKeyControl class.*/
+//    private KeyControl myKeyControlKey = new KeyControl();
+    
+    /**Declaring TetrisGUI class.*/
+    private TetrisGUI myTetris;
+    /**
+     * Constructor to initialize.
+     * @param theTetrisGUI 
+     */
+    public ControlButtons(final TetrisGUI theTetrisGUI) {
+        super();
+        myTetris = theTetrisGUI;
+        final TitledBorder border = new TitledBorder("Control Keys");
+        border.setTitleJustification(TitledBorder.CENTER);
+        border.setTitlePosition(TitledBorder.TOP);
+        setBorder(border);
+        setBackground(Color.cyan);
+        setPreferredSize(SIZE);
+        
+        addComponents();
+
+//        }
+    }
+
+    @Override
+    public void update(final Observable theObject, final Object theArg) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+
+    /**
+     * returns the leftkeyLabel.
+     * @return JLabel
+     */
+    public JLabel leftLabel() {
+        return myLeftKeyLabel;
+    }
+    
+    /**
+     * returns the RightkeyLabel.
+     * @return JLabel
+     */
+    public JLabel rightLabel() {
+        return myRightKeyLabel;
+    }
+    
+    /**
+     * returns the RotatekeyLabel.
+     * @return JLabel
+     */
+    public JLabel rotateLabel() {
+        return myRotateKeyLabel;
+    }
+    
+    /**
+     * returns the DownkeyLabel.
+     * @return JLabel
+     */
+    public JLabel downKeyLabel() {
+        return myDownKeyLabel;
+    }
+    /**
+     * This method add's component to the panel.
+     */
+    public void addComponents() {
+//        myKeyControl = new KeyControl();
+        myLeftKeyLabel = new JLabel("Left Move : Left Key or " + myTetris.getLeftKey());
+        myRightKeyLabel = new JLabel("Right Move : Right Key or " 
+        + myTetris.getRightKey());
+        myRotateKeyLabel = new JLabel("Rotate Object : Up Key or " 
+        + myTetris.getRotateKey());
+        myDownKeyLabel = new JLabel("Down Object : Down Key or " 
+        + myTetris.getDownKey());
+        myDropKeyLabel = new JLabel("Drop Object : Space bar " 
+        + myTetris.getDropKey());
+        
+        myPauseKeyLabel = new JLabel("Pause/Play : p  or P");
+        
+        add(myLeftKeyLabel);
+        add(myRightKeyLabel);
+        add(myRotateKeyLabel);
+        add(myDownKeyLabel);
+        add(myDropKeyLabel);
+        add(myPauseKeyLabel);
+//        System.out.println("called from outside");
+        repaint();
+        
+
+    }
+
+}

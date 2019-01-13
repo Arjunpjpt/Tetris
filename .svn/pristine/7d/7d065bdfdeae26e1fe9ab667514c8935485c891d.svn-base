@@ -1,0 +1,144 @@
+/*
+ * TCSS 305
+ * 
+ * Assignment 6 - Tetris
+ */
+package view;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.util.Observable;
+import java.util.Observer;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
+
+/**
+ * This class is to update score and label.
+ * @author Arjun Prajapati
+ * @version December 1, 2017
+ */
+public class Score extends JPanel implements Observer {
+
+    
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**Size of the Panel.*/
+    private static final Dimension SIZE = new Dimension(200, 200);
+    
+    /**score per line for level 1.*/
+    private static final int LEVEL_ONE_INCEREMENT = 40;
+
+    /**TetrisGUI class.*/
+    private TetrisGUI myTetrisGUI;
+    
+    /**Initial Score.*/
+    private int myCurrentScore;
+    
+//    private int myScoringfinal = 0;
+    
+    /**Label for score.*/
+    private JLabel myCurrentScoreLabel = new JLabel();
+    
+    /**Current Score Label.*/
+    private JLabel myScore = new JLabel("Score : ");
+    
+//    private GameBoardPanel gameBoard = new GameBoardPanel(myTetrisGUI);;
+    
+    /**
+     * This is a panel to update the score of a game.
+     * @param theTetrisGUI , tetrisGUI object
+     */
+    public Score(final TetrisGUI theTetrisGUI) {
+        super();
+        // TODO Auto-generated constructor stub
+        myTetrisGUI = theTetrisGUI;
+        final TitledBorder border = new TitledBorder("Score");
+        border.setTitleJustification(TitledBorder.CENTER);
+        border.setTitlePosition(TitledBorder.TOP);
+        setBorder(border);
+        
+        setBackground(Color.LIGHT_GRAY);
+        setPreferredSize(SIZE);
+        
+        addComponent();
+    }
+    
+    /**
+     * Add component for panel.
+     */
+    public void addComponent() {
+        add(myScore);
+        gameScore();
+        add(myCurrentScoreLabel);
+    }
+    /**
+     * method to update the score.
+     * @param theUpdate , integer value get from board.
+     */
+    public void scoreUpdate(final int theUpdate) {
+//      System.out.println(theUpdate);
+        myTetrisGUI.setScore(theUpdate);
+        myCurrentScore += theUpdate * LEVEL_ONE_INCEREMENT;
+//        System.out.println(myCurrentScore);
+//        myScoringfinal = myCurrentScore;
+        gameScore();
+    }
+    
+    /**
+     * return the current score.
+     * @return int
+     */
+    public int getCurrentScore() {
+        System.out.println("aaaaaaaaAA" + myCurrentScore);
+        return Integer.parseInt(myCurrentScoreLabel.getText());
+        
+//        return myScoringfinal;
+    }
+    
+    /**
+     * update the score.
+     * @param theScore , score of the game
+     */
+    public void setCurrentScore(final int theScore) {
+        myCurrentScore = 0;
+    }
+    /**
+     * method to update the gamescore.
+     */
+    public void gameScore() {
+//        final String score = Integer.toString(myCurrentScore);
+//        myCurrentScore = (int)Integer.toString(myCurrentScore);
+//        GameBoardPanel.sets
+//        System.out.println(Integer.toString(myTetrisGUI.getScore()));
+        myCurrentScoreLabel.setText(Integer.toString(myCurrentScore));
+
+//        repaint();
+    }
+    
+    /**
+     * return the JLabel with new updated score.
+     * @return JLabel
+     */
+    public JLabel getCurrentScoreLabel() {
+        return myCurrentScoreLabel;
+    }
+
+    @Override
+    public void update(final Observable theObject, final Object theArg) {
+//        System.out.println("Called");
+        if (theArg instanceof Integer[]) {
+            scoreUpdate(((Integer[]) theArg).length);
+//          System.out.println("Called");
+
+            myTetrisGUI.setScore(myCurrentScore);
+
+            repaint();
+        }
+        
+    }
+
+}
